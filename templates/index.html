@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My SOC - CVE Hunter Dashboard</title>
+    <!-- Tailwind CSS (CDNで手軽にデザイン) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #0f172a;
+        color: #e2e8f0;
+      }
+      .markdown-body h1 {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-top: 1em;
+        color: #60a5fa;
+      }
+      .markdown-body h2 {
+        font-size: 1.25em;
+        font-weight: bold;
+        margin-top: 1em;
+        color: #93c5fd;
+      }
+      .markdown-body ul {
+        list-style-type: disc;
+        margin-left: 1.5em;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header
+      class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-50"
+    >
+      <div class="container mx-auto flex justify-between items-center">
+        <h1
+          class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500"
+        >
+          🛡️ CVE-Hunter Dashboard
+        </h1>
+        <a href="/" class="text-slate-400 hover:text-white transition">Home</a>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 flex-grow">
+      {% if cve_detail %}
+      <!-- 詳細ビュー -->
+      <div
+        class="max-w-4xl mx-auto bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden"
+      >
+        <div
+          class="p-6 border-b border-slate-700 flex justify-between items-start"
+        >
+          <div>
+            <h2 class="text-3xl font-bold text-white mb-2">
+              {{ cve_detail.cve_id }}
+            </h2>
+            <span class="text-sm text-slate-400"
+              >Published: {{ cve_detail.published_date }}</span
+            >
+          </div>
+          <div class="text-center">
+            <div
+              class="text-3xl font-bold {% if cve_detail.severity_score >= 9.0 %} text-red-500 {% elif cve_detail.severity_score >= 7.0 %} text-orange-400 {% else %} text-yellow-400 {% endif %}"
+            >
+              {{ cve_detail.severity_score }}
+            </div>
+            <div class="text-xs uppercase tracking-wider text-slate-500">
+              {{ cve_detail.severity_level }}
+            </div>
+          </div>
+        </div>
+        <div class="p-6">
+          <h3 class="text-xl font-semibold text-white mb-4">
+            AI Analysis Report
+          </h3>
+          <div
+            class="markdown-body text-slate-300 leading-relaxed whitespace-pre-wrap"
+          >
+            {{ cve_detail.summary_jp }}
+          </div>
+
+          <hr class="border-slate-700 my-6" />
+
+          <h4 class="text-lg font-semibold text-slate-400 mb-2">
+            Original Description
+          </h4>
+          <p
+            class="text-sm text-slate-500 bg-slate-900 p-4 rounded-lg font-mono"
+          >
+            {{ cve_detail.description }}
+          </p>
+        </div>
+        <div class="p-4 bg-slate-900 border-t border-slate-700 text-center">
+          <a href="/" class="text-blue-400 hover:text-blue-300"
+            >← Back to List</a
+          >
+        </div>
+      </div>
+
+      {% else %}
+      <!-- リストビュー -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for cve in cves %}
+        <a href="/cve/{{ cve.cve_id }}" class="block group">
+          <div
+            class="bg-slate-800 rounded-lg p-5 border border-slate-700 hover:border-blue-500 transition shadow-md h-full flex flex-col"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <span
+                class="font-mono text-blue-400 font-bold group-hover:text-blue-300"
+                >{{ cve.cve_id }}</span
+              >
+              <span
+                class="px-2 py-1 rounded text-xs font-bold {% if cve.severity_score >= 9.0 %} bg-red-900 text-red-200 {% elif cve.severity_score >= 7.0 %} bg-orange-900 text-orange-200 {% else %} bg-yellow-900 text-yellow-200 {% endif %}"
+              >
+                Score: {{ cve.severity_score }}
+              </span>
+            </div>
+            <p class="text-slate-400 text-sm line-clamp-3 mb-4 flex-grow">
+              {{ cve.description }}
+            </p>
+            <div
+              class="flex justify-between items-center text-xs text-slate-500 mt-auto pt-3 border-t border-slate-700"
+            >
+              <span>{{ cve.published_date[:10] }}</span>
+              <span class="group-hover:translate-x-1 transition">Detail →</span>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+
+      {% if not cves %}
+      <div class="text-center py-20 text-slate-500">
+        <p class="text-xl">まだデータがありません。</p>
+        <p>cve_hunter.py を実行してデータを収集してください。</p>
+      </div>
+      {% endif %} {% endif %}
+    </main>
+
+    <footer class="text-center p-6 text-slate-600 text-sm">
+      &copy; 2024 My SOC Project - Powered by Local LLM & Flask
+    </footer>
+  </body>
+</html>
